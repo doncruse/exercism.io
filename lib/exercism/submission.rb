@@ -50,8 +50,28 @@ class Submission
   end # triggered only when user has participated in a discussion, implicitly a return receipt on the feedback
 
   def versions_count
-    @versions_count ||= user.submissions.select { |s| s.language == self.language and s.slug == self.slug }.count
+    @versions_count ||= all_versions.count
   end # clumsy but I'm not sure a cleaner way
+
+  def all_versions
+    @versions ||= user.submissions.select { |s| s.language == self.language and s.slug == self.slug }
+  end
+
+  def no_version_has_nits?
+    @no_previous_nits ||= all_versions.find_index { |v| v.nits_by_others_count > 0 }.nil?
+  end
+
+  def some_version_has_nits?
+    !no_version_has_nits?
+  end
+
+  def this_version_has_nits?
+    nits_by_others_count > 0
+  end
+
+  def no_nits_yet?
+    !this_version_has_nits
+  end
 
   def exercise
     @exercise ||= Exercise.new(language, slug)
